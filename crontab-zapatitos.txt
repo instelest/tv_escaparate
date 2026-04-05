@@ -1,0 +1,37 @@
+# Edit this file to introduce tasks to be run by cron.
+# 
+# Each task to run has to be defined through a single line
+# indicating with different fields when the task will be run
+# and what command to run for the task
+# 
+# To define the time you can provide concrete values for
+# minute (m), hour (h), day of month (dom), month (mon),
+# and day of week (dow) or use '*' in these fields (for 'any').
+# 
+# Notice that tasks will be started based on the cron's system
+# daemon's notion of time and timezones.
+# 
+# Output of the crontab jobs (including errors) is sent through
+# email to the user the crontab file belongs to (unless redirected).
+# 
+# For example, you can run a backup of all your user accounts
+# at 5 a.m every week with:
+# 0 5 * * 1 tar -zcf /var/backups/home.tgz /home/
+# 
+# For more information see the manual pages of crontab(5) and cron(8)
+# 
+# m h  dom mon dow   command
+
+# Encender TV y empezar reproducción a las 08:00
+#45 7 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /usr/local/bin/tv-on.sh
+
+# Apagar TV y detener reproducción a las 22:00
+#1 22 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /usr/local/bin/tv-off.sh
+# Asegurar señal HDMI activa cuando la TV enciende por el enchufe
+0 8 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority xrandr --output LVDS-1 --off --output HDMI-1 --mode 1920x1080 --rate 60 --primary
+
+# Arrancar reproductor
+5 8 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /usr/local/bin/tv-on.sh
+
+# Apagar reproducción a las 22:00
+0 22 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /usr/local/bin/tv-off.sh
