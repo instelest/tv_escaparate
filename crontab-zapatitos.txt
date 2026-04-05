@@ -31,7 +31,7 @@
 0 8 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority xrandr --output LVDS-1 --off --output HDMI-1 --mode 1920x1080 --rate 60 --primary
 
 # Arrancar reproductor
-5 8 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /usr/local/bin/tv-on.sh
+5 8 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /escaparate/tv-on.sh
 
 # Apagar reproducción a las 22:00
-0 22 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /usr/local/bin/tv-off.sh
+0 22 * * * DISPLAY=:0 XAUTHORITY=$HOME/.Xauthority /escaparate/tv-off.sh

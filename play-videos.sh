@@ -1,19 +1,20 @@
 #!/bin/bash
 # Reproductor con mpv persistente — sin parpadeos entre archivos
 
-VIDEO_DIR="/srv/samba/shared/Videos"
-IMAGE_DIR="/srv/samba/shared/Imagenes"
-NEWS_DIR="/srv/samba/shared/Noticias"
+BASE_DIR="/escaparate"
+VIDEO_DIR="$BASE_DIR/videos"
+IMAGE_DIR="$BASE_DIR/imagenes"
+NEWS_DIR="$BASE_DIR/noticias"
 STATUS_FILE="/tmp/player-status.json"
 MPV_SOCKET="/tmp/mpv-socket"
-CONFIG_FILE="/home/zapatitos/player-config.json"
-RAM_DIR="/mnt/signage-ram"
+CONFIG_FILE="$BASE_DIR/config.json"
+RAM_DIR="$BASE_DIR/ram"
 
 VIDEO_EXTS=( mp4 mkv avi mov wmv flv webm ts m4v )
 IMAGE_EXTS=( jpg jpeg png gif bmp webp )
 
 XUSER=$(who | awk '($2 ~ /^:[0-9]/ || $NF ~ /\(:[0-9]/) {print $1; exit}')
-XUSER=${XUSER:-zapatitos}
+XUSER=${XUSER:-$(logname 2>/dev/null || echo "$SUDO_USER" || whoami)}
 export DISPLAY=:0
 export XAUTHORITY="/home/${XUSER}/.Xauthority"
 export PIPEWIRE_RUNTIME_DIR="/run/user/$(id -u ${XUSER})"

@@ -12,5 +12,5 @@ xset s noblank
 
 # Iniciar reproducción si no está corriendo ya
 if ! pgrep -f play-videos.sh > /dev/null; then
-    /usr/local/bin/play-videos.sh &
+    /escaparate/play-videos.sh &
 fi

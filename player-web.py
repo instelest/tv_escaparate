@@ -9,14 +9,17 @@ import threading
 import uuid
 import socket as _socket
 
+BASE_DIR     = "/escaparate"
 STATUS_FILE  = "/tmp/player-status.json"
-CONFIG_FILE  = "/home/zapatitos/player-config.json"
-VIDEO_DIR    = "/srv/samba/shared/Videos"
-IMAGE_DIR    = "/srv/samba/shared/Imagenes"
-NEWS_DIR     = "/srv/samba/shared/Noticias"
+CONFIG_FILE  = os.path.join(BASE_DIR, "config.json")
+VIDEO_DIR    = os.path.join(BASE_DIR, "videos")
+IMAGE_DIR    = os.path.join(BASE_DIR, "imagenes")
+NEWS_DIR     = os.path.join(BASE_DIR, "noticias")
 PORT         = 8080
 MPV_SOCKET   = "/tmp/mpv-socket"
-XUSER        = "zapatitos"
+XUSER        = (os.environ.get("SUDO_USER")
+                or subprocess.run(["logname"], capture_output=True, text=True).stdout.strip()
+                or os.environ.get("USER", ""))
 
 VIDEO_EXTS = {'.mp4','.mkv','.avi','.mov','.wmv','.flv','.webm','.ts','.m4v'}
 IMAGE_EXTS = {'.jpg','.jpeg','.png','.gif','.bmp','.webp'}
@@ -802,7 +805,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if subprocess.run(['pgrep', '-f', 'play-videos.sh'],
                               capture_output=True).returncode != 0:
                 subprocess.Popen(
-                    ['/usr/local/bin/play-videos.sh'],
+                    ['/escaparate/play-videos.sh'],
                     stdout=subprocess.DEVNULL,
                     stderr=subprocess.DEVNULL,
                     user=XUSER
@@ -940,7 +943,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
         try:
             output_tmpl = os.path.join(VIDEO_DIR, '%(title)s.%(ext)s')
             result = subprocess.run(
-                ['/usr/local/bin/yt-dlp', '--get-filename',
+                ['yt-dlp', '--get-filename',
                  '-f', 'bestvideo+bestaudio/best',
                  '--merge-output-format', 'mp4', '-o', output_tmpl, url],
                 capture_output=True, text=True
@@ -951,7 +954,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     with downloads_lock:
                         downloads[dl_id]['filename'] = expected
             cmd = [
-                '/usr/local/bin/yt-dlp', '--no-playlist',
+                'yt-dlp', '--no-playlist',
                 '-f', 'bestvideo+bestaudio/best',
                 '--merge-output-format', 'mp4', '--no-part',
                 '-o', output_tmpl, '--newline', url
