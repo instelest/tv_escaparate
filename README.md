@@ -49,11 +49,12 @@ sudo bash install.sh [usuario]
 
 Si no se indica usuario, se usa el que invocó `sudo`. El instalador:
 
-1. Instala dependencias (`mpv`, `socat`, `python3`, `x11-xserver-utils`)
+1. Instala dependencias (`mpv`, `socat`, `python3`, `x11-xserver-utils`, `samba`)
 2. Crea `/escaparate/` con los subdirectorios y monta `/escaparate/ram` como tmpfs (2 GB)
 3. Copia los scripts y la configuración de mpv
-4. Crea e inicia el servicio systemd `player-web` (servidor web en el arranque)
-5. Instala los crontabs para encendido automático a las 08:05 y apagado a las 22:00
+4. Configura Samba y comparte las carpetas `videos`, `imagenes` y `noticias`
+5. Crea e inicia el servicio systemd `player-web` (servidor web en el arranque)
+6. Instala los crontabs para encendido automático a las 08:05 y apagado a las 22:00
 
 ### Inicio manual
 
@@ -71,6 +72,22 @@ systemctl restart player-web
 ```
 
 Acceder desde cualquier dispositivo en la misma red: `http://<ip-del-equipo>:8080`
+
+## Acceso por red (Samba)
+
+El instalador configura tres carpetas compartidas accesibles desde Windows/Mac/Linux en la misma red:
+
+| Recurso | Ruta local | Acceso |
+|---|---|---|
+| `\\<ip>\videos` | `/escaparate/videos` | lectura/escritura |
+| `\\<ip>\imagenes` | `/escaparate/imagenes` | lectura/escritura |
+| `\\<ip>\noticias` | `/escaparate/noticias` | lectura/escritura |
+
+Durante la instalación se pedirá una contraseña Samba para el usuario. Para cambiarla después:
+
+```bash
+sudo smbpasswd <usuario>
+```
 
 ## Configuración
 

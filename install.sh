@@ -33,8 +33,8 @@ echo "  Usuario         : $TARGET_USER"
 echo ""
 
 # ── Dependencias ──────────────────────────────────────────────────────
-echo "[1/5] Instalando dependencias..."
-apt-get install -y mpv socat python3 x11-xserver-utils > /dev/null
+echo "[1/6] Instalando dependencias..."
+apt-get install -y mpv socat python3 x11-xserver-utils samba > /dev/null
 
 # yt-dlp (opcional, para descarga de vídeos desde URL)
 if ! command -v yt-dlp &>/dev/null; then
@@ -46,7 +46,7 @@ if ! command -v yt-dlp &>/dev/null; then
 fi
 
 # ── Crear estructura de directorios ──────────────────────────────────
-echo "[2/5] Creando directorios en $BASE_DIR..."
+echo "[2/6] Creando directorios en $BASE_DIR..."
 mkdir -p "$BASE_DIR"/{videos,imagenes,noticias,ram}
 chown -R "$TARGET_USER":"$TARGET_USER" "$BASE_DIR"
 chmod -R 755 "$BASE_DIR"
@@ -58,7 +58,7 @@ if ! grep -q "$BASE_DIR/ram" /etc/fstab; then
 fi
 
 # ── Copiar scripts ────────────────────────────────────────────────────
-echo "[3/5] Copiando scripts a $BASE_DIR..."
+echo "[3/6] Copiando scripts a $BASE_DIR..."
 for f in play-videos.sh tv-on.sh tv-off.sh; do
     cp "$SCRIPT_DIR/$f" "$BASE_DIR/$f"
     chmod +x "$BASE_DIR/$f"
@@ -84,7 +84,50 @@ if [[ ! -f "$CONFIG_FILE" ]]; then
 fi
 
 # ── Servicio systemd para el servidor web ────────────────────────────
-echo "[4/5] Creando servicio systemd (player-web)..."
+echo "[4/6] Configurando Samba (compartición de carpetas)..."
+SMB_CONF="/etc/samba/smb.conf"
+# Elimina bloques anteriores de tv_escaparate si ya existen
+sed -i '/^# --- tv_escaparate/,/^# --- fin tv_escaparate/d' "$SMB_CONF"
+cat >> "$SMB_CONF" <<SMBEOF
+
+# --- tv_escaparate ---
+[videos]
+   path = $BASE_DIR/videos
+   browseable = yes
+   read only = no
+   create mask = 0664
+   directory mask = 0775
+   force user = $TARGET_USER
+
+[imagenes]
+   path = $BASE_DIR/imagenes
+   browseable = yes
+   read only = no
+   create mask = 0664
+   directory mask = 0775
+   force user = $TARGET_USER
+
+[noticias]
+   path = $BASE_DIR/noticias
+   browseable = yes
+   read only = no
+   create mask = 0664
+   directory mask = 0775
+   force user = $TARGET_USER
+# --- fin tv_escaparate ---
+SMBEOF
+
+# Crear usuario Samba para TARGET_USER si no existe
+if ! pdbedit -L | grep -q "^$TARGET_USER:"; then
+    echo ""
+    echo "  Establece la contraseña Samba para '$TARGET_USER':"
+    smbpasswd -a "$TARGET_USER"
+fi
+
+systemctl enable smbd nmbd
+systemctl restart smbd nmbd
+
+echo "[5/6] Creando servicio systemd (player-web)..."
 cat > /etc/systemd/system/player-web.service <<EOF
 [Unit]
 Description=tv_escaparate - servidor web de control
@@ -105,7 +148,7 @@ systemctl enable player-web.service
 systemctl restart player-web.service
 
 # ── Crontab del usuario ───────────────────────────────────────────────
-echo "[5/5] Instalando crontab del usuario $TARGET_USER..."
+echo "[6/6] Instalando crontab del usuario $TARGET_USER..."
 CRON_TMP=$(mktemp)
 sed "s|\$HOME|/home/$TARGET_USER|g" "$SCRIPT_DIR/crontab-zapatitos.txt" > "$CRON_TMP"
 crontab -u "$TARGET_USER" "$CRON_TMP"
